@@ -506,12 +506,11 @@ Contributions welcome! Areas for improvement:
 MIT License - use freely for commercial or personal projects
 
 ## 🙏 Acknowledgments
-
-- Powered by Anthropic's Claude
+- Nisarg Zaveri Dev
 - Inspired by autonomous agent systems
 - Built for developers who value automation
 
-## 📞 Support
+##  Support
 
 - **Issues:** Check `decisions.log` and `factory.log`
 - **Questions:** Review this README
