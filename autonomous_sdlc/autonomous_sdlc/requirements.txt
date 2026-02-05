@@ -1,0 +1,20 @@
+# Core dependencies
+anthropic>=0.18.0
+python-dotenv>=1.0.0
+
+# Async support
+aiohttp>=3.9.0
+asyncio>=3.4.3
+
+# Utilities
+pathlib2>=2.3.7; python_version < '3.4'
+
+# Optional: For enhanced features
+requests>=2.31.0  # For web search if needed
+pyyaml>=6.0  # For YAML config support
+
+# Development dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+pylint>=3.0.0
