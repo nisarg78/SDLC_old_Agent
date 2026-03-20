@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MECH Avatar — Architecture Diagrams</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bmo-blue: #0057A4;
+    --bmo-dark: #003D7A;
+    --bmo-light: #E8F1FA;
+    --bmo-mid: #1A6BAA;
+    --accent: #F0A500;
+    --accent2: #00A878;
+    --accent3: #E05252;
+    --bg: #0A0E1A;
+    --bg2: #0F1626;
+    --bg3: #151E30;
+    --surface: #1A2440;
+    --surface2: #1E2A4A;
+    --border: rgba(0,87,164,0.3);
+    --text: #E8EEF8;
+    --text2: #9AABCC;
+    --text3: #6B7FA0;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --haiku: #B06FE8;
+    --sonnet: #F0A500;
+    --titan: #00C9A7;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 1400px; margin: 0 auto; padding: 40px 32px; }
+
+  /* ── COVER ── */
+  .cover {
+    background: linear-gradient(135deg, #0A0E1A 0%, #0F1E3A 50%, #0A0E1A 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(0,87,164,0.15) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 80% 50%, rgba(0,169,135,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,87,164,0.06) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,87,164,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .cover-inner { position: relative; z-index: 1; }
+  .cover-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(240,165,0,0.1);
+    border: 1px solid rgba(240,165,0,0.3);
+    padding: 4px 12px;
+    border-radius: 2px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-size: 56px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .cover h1 span { color: var(--bmo-mid); }
+  .cover-sub {
+    font-size: 18px;
+    color: var(--text2);
+    font-weight: 300;
+    margin-bottom: 32px;
+  }
+  .cover-pills {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  }
+  .cover-pill {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 16px;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+  .pill-blue { color: #60A0E0; border-color: rgba(96,160,224,0.4); background: rgba(96,160,224,0.08); }
+  .pill-green { color: var(--titan); border-color: rgba(0,201,167,0.4); background: rgba(0,201,167,0.08); }
+  .pill-yellow { color: var(--accent); border-color: rgba(240,165,0,0.4); background: rgba(240,165,0,0.08); }
+  .pill-purple { color: var(--haiku); border-color: rgba(176,111,232,0.4); background: rgba(176,111,232,0.08); }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex; align-items: center; gap: 16px;
+    margin: 56px 0 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(240,165,0,0.1);
+    border: 1px solid rgba(240,165,0,0.25);
+    padding: 4px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .section-header h2 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .section-header p {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+
+  /* ── DIAGRAM 1: HIGH-LEVEL ARCHITECTURE ── */
+  .arch-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-diagram::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,87,164,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,87,164,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+  .arch-inner { position: relative; z-index: 1; }
+
+  /* ACTOR ROW */
+  .actor-row {
+    display: flex; gap: 0; margin-bottom: 24px;
+    border: 1px solid rgba(0,87,164,0.5);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .actor {
+    flex: 1; padding: 14px 20px; text-align: center;
+    background: var(--surface);
+    border-right: 1px solid rgba(0,87,164,0.3);
+    transition: background 0.2s;
+  }
+  .actor:last-child { border-right: none; }
+  .actor-icon { font-size: 22px; margin-bottom: 4px; }
+  .actor-label { font-size: 11px; font-weight: 600; color: var(--text); text-transform: uppercase; letter-spacing: 0.05em; }
+  .actor-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  /* PIPELINE ROWS */
+  .pipeline-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pipeline-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .pipeline-row {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 16px;
+  }
+  .p-node {
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 110px; padding: 10px 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+    position: relative;
+  }
+  .p-node-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    background: var(--bg2);
+    padding: 0 6px;
+    color: var(--text3);
+  }
+  .p-node-title { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .p-node-sub { font-size: 10px; color: var(--text3); }
+  .p-node.blue { border-color: rgba(0,87,164,0.8); background: rgba(0,57,122,0.3); }
+  .p-node.green { border-color: rgba(0,168,120,0.8); background: rgba(0,168,120,0.1); }
+  .p-node.purple { border-color: rgba(176,111,232,0.6); background: rgba(176,111,232,0.08); }
+  .p-node.yellow { border-color: rgba(240,165,0,0.6); background: rgba(240,165,0,0.08); }
+  .p-node.teal { border-color: rgba(0,201,167,0.6); background: rgba(0,201,167,0.08); }
+  .p-node.red { border-color: rgba(224,82,82,0.6); background: rgba(224,82,82,0.08); }
+
+  .arrow {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    min-width: 24px; max-width: 40px;
+    color: var(--text3);
+    font-size: 16px;
+  }
+  .arrow-down {
+    display: flex; justify-content: center; align-items: center;
+    height: 20px; color: var(--text3); font-size: 16px;
+    margin: 4px 0;
+  }
+
+  /* SHARED SERVICES */
+  .shared-row {
+    display: flex; gap: 12px; margin-top: 16px;
+  }
+  .shared-node {
+    flex: 1; padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    text-align: center;
+  }
+  .shared-node-title { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .shared-node-items { font-size: 10px; color: var(--text3); line-height: 1.8; }
+
+  /* ── DIAGRAM 2: STEP FUNCTION ── */
+  .sf-diagram {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .sf-flow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .sf-state {
+    width: 100%;
+    max-width: 340px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 16px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sf-state.choice { border-style: dashed; background: rgba(240,165,0,0.06); border-color: rgba(240,165,0,0.4); }
+  .sf-state.success { border-color: rgba(0,168,120,0.6); background: rgba(0,168,120,0.08); }
+  .sf-state.fail { border-color: rgba(224,82,82,0.5); background: rgba(224,82,82,0.06); }
+  .sf-state.dynamo { border-color: rgba(0,87,164,0.6); background: rgba(0,57,122,0.25); }
+  .sf-state.lambda { border-color: rgba(176,111,232,0.5); background: rgba(176,111,232,0.06); }
+  .sf-icon { font-size: 18px; flex-shrink: 0; }
+  .sf-body { flex: 1; }
+  .sf-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .sf-desc { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .sf-connector {
+    width: 2px;
+    height: 16px;
+    background: var(--border);
+    margin: 0 auto;
+  }
+  .sf-branch {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  .sf-branch-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .sf-branch-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 8px;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  .sf-legend {
+    width: 200px;
+    flex-shrink: 0;
+  }
+  .sf-legend-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+  .sf-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .sf-legend-box {
+    width: 14px; height: 14px; border-radius: 2px; border: 1px solid; flex-shrink: 0;
+  }
+
+  /* ── DIAGRAM 3: 15-STAGE RAG PIPELINE ── */
+  .rag-pipeline {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .rag-stage {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    background: var(--surface);
+    transition: background 0.15s;
+  }
+  .rag-stage:first-child { border-radius: 4px 4px 0 0; }
+  .rag-stage:last-child { border-bottom: 1px solid var(--border); border-radius: 0 0 4px 4px; }
+  .rag-stage:hover { background: var(--surface2); }
+  .rag-num {
+    width: 48px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text3);
+    border-right: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+  .rag-content { flex: 1; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .rag-name { font-size: 12px; font-weight: 600; color: var(--text); min-width: 180px; flex-shrink: 0; }
+  .rag-desc { font-size: 11px; color: var(--text3); flex: 1; }
+  .rag-model {
+    font-family: var(--mono); font-size: 10px;
+    padding: 3px 8px; border-radius: 2px; border: 1px solid;
+    flex-shrink: 0; white-space: nowrap;
+  }
+  .model-haiku { color: var(--haiku); border-color: rgba(176,111,232,0.4); background: rgba(176,111,232,0.08); }
+  .model-sonnet { color: var(--sonnet); border-color: rgba(240,165,0,0.4); background: rgba(240,165,0,0.08); }
+  .model-titan { color: var(--titan); border-color: rgba(0,201,167,0.4); background: rgba(0,201,167,0.08); }
+  .model-internal { color: var(--text3); border-color: var(--border); background: rgba(0,0,0,0.2); }
+  .model-dynamo { color: #60A0E0; border-color: rgba(96,160,224,0.4); background: rgba(96,160,224,0.08); }
+  .rag-stage.parallel-group {
+    flex-direction: column;
+    background: rgba(0,87,164,0.05);
+    border-color: rgba(0,87,164,0.4);
+    padding: 0;
+  }
+  .parallel-header {
+    padding: 6px 16px 6px 48px;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--bmo-mid);
+    background: rgba(0,87,164,0.1);
+    border-bottom: 1px solid rgba(0,87,164,0.2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .parallel-stages { display: flex; gap: 0; }
+  .parallel-sub {
+    flex: 1; padding: 10px 16px;
+    border-right: 1px solid rgba(0,87,164,0.2);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .parallel-sub:last-child { border-right: none; }
+  .parallel-sub-label { font-size: 10px; color: var(--text3); }
+  .parallel-sub-name { font-size: 11px; font-weight: 600; color: var(--text); }
+  .parallel-sub-model { margin-top: 4px; }
+
+  /* ── DIAGRAM 4: INDEXING ── */
+  .index-diagram { display: flex; gap: 24px; }
+  .index-left { flex: 1; }
+  .index-right { width: 320px; flex-shrink: 0; }
+
+  .priority-table { width: 100%; border-collapse: collapse; }
+  .priority-table th {
+    font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text3);
+    padding: 8px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .priority-table td {
+    padding: 8px 12px; font-size: 11px; color: var(--text2);
+    border-bottom: 1px solid rgba(0,87,164,0.1);
+    vertical-align: middle;
+  }
+  .priority-table tr:last-child td { border-bottom: none; }
+  .priority-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+  }
+  .p1 { background: rgba(0,168,120,0.2); color: var(--accent2); border: 1px solid rgba(0,168,120,0.5); }
+  .p2 { background: rgba(0,168,120,0.15); color: #44BB99; border: 1px solid rgba(0,168,120,0.4); }
+  .p3 { background: rgba(0,87,164,0.2); color: #60A0E0; border: 1px solid rgba(0,87,164,0.5); }
+  .p4 { background: rgba(0,87,164,0.15); color: #5090D0; border: 1px solid rgba(0,87,164,0.4); }
+  .p5 { background: rgba(0,87,164,0.12); color: #4080C0; border: 1px solid rgba(0,87,164,0.35); }
+  .p6 { background: rgba(176,111,232,0.12); color: #9B7DC8; border: 1px solid rgba(176,111,232,0.35); }
+  .p7 { background: rgba(176,111,232,0.1); color: #8B6DB8; border: 1px solid rgba(176,111,232,0.3); }
+  .p8 { background: rgba(176,111,232,0.08); color: #7B5DA8; border: 1px solid rgba(176,111,232,0.25); }
+  .p9 { background: rgba(176,111,232,0.06); color: #6B4D98; border: 1px solid rgba(176,111,232,0.2); }
+  .p100 { background: rgba(100,100,100,0.1); color: var(--text3); border: 1px solid var(--border); }
+
+  .boost-bar-container { flex: 1; }
+  .boost-bar {
+    height: 14px; border-radius: 2px; display: flex; align-items: center;
+    padding-left: 8px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+  }
+  .boost-2x { background: linear-gradient(90deg, rgba(0,168,120,0.4), rgba(0,168,120,0.2)); color: var(--accent2); width: 100%; }
+  .boost-15x { background: linear-gradient(90deg, rgba(0,87,164,0.4), rgba(0,87,164,0.2)); color: #60A0E0; width: 75%; }
+  .boost-12x { background: linear-gradient(90deg, rgba(176,111,232,0.3), rgba(176,111,232,0.15)); color: var(--haiku); width: 60%; }
+  .boost-1x { background: rgba(100,100,100,0.15); color: var(--text3); width: 50%; }
+
+  /* Chunk anatomy */
+  .chunk-anatomy {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .chunk-header {
+    background: var(--surface);
+    padding: 8px 16px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--border);
+  }
+  .chunk-field {
+    display: flex;
+    align-items: center;
+    padding: 7px 16px;
+    border-bottom: 1px solid rgba(0,87,164,0.08);
+    gap: 10px;
+  }
+  .chunk-field:last-child { border-bottom: none; }
+  .cf-name { font-family: var(--mono); font-size: 11px; color: #60A0E0; min-width: 130px; flex-shrink: 0; }
+  .cf-type { font-family: var(--mono); font-size: 10px; color: var(--text3); min-width: 80px; }
+  .cf-desc { font-size: 10px; color: var(--text3); flex: 1; }
+
+  /* ── DIAGRAM 5: TOKEN FLOW ── */
+  .token-diagram { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .token-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .token-card-header {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tc-blue { background: rgba(0,57,122,0.4); color: #60A0E0; }
+  .tc-purple { background: rgba(80,40,120,0.3); color: var(--haiku); }
+  .tc-yellow { background: rgba(100,70,0,0.3); color: var(--sonnet); }
+  .tc-teal { background: rgba(0,80,60,0.3); color: var(--titan); }
+  .token-row {
+    display: flex; align-items: center;
+    padding: 7px 16px;
+    border-bottom: 1px solid rgba(0,87,164,0.08);
+    gap: 10px;
+  }
+  .token-row:last-child { border-bottom: none; }
+  .tr-stage { font-size: 11px; color: var(--text2); flex: 1; }
+  .tr-in { font-family: var(--mono); font-size: 11px; color: #60A0E0; min-width: 80px; text-align: right; }
+  .tr-out { font-family: var(--mono); font-size: 11px; color: var(--accent2); min-width: 80px; text-align: right; }
+  .token-total {
+    padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(0,0,0,0.25);
+    font-family: var(--mono); font-size: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .token-total-label { color: var(--text3); font-size: 10px; }
+  .token-total-val { color: var(--accent); font-weight: 600; }
+
+  /* ── DIAGRAM 6: MODEL USAGE ── */
+  .model-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .model-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .model-card-header {
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .model-logo {
+    width: 40px; height: 40px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .logo-haiku { background: rgba(176,111,232,0.2); border: 1px solid rgba(176,111,232,0.4); color: var(--haiku); font-family: var(--mono); font-size: 11px; }
+  .logo-sonnet { background: rgba(240,165,0,0.2); border: 1px solid rgba(240,165,0,0.4); color: var(--sonnet); font-family: var(--mono); font-size: 11px; }
+  .logo-titan { background: rgba(0,201,167,0.2); border: 1px solid rgba(0,201,167,0.4); color: var(--titan); font-family: var(--mono); font-size: 10px; }
+  .model-name { font-size: 14px; font-weight: 600; color: #fff; }
+  .model-version { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .model-tasks { padding: 12px 20px; }
+  .model-task {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,87,164,0.1);
+    font-size: 11px; color: var(--text2);
+  }
+  .model-task:last-child { border-bottom: none; }
+  .mt-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    margin-top: 4px; flex-shrink: 0;
+  }
+  .dot-haiku { background: var(--haiku); }
+  .dot-sonnet { background: var(--sonnet); }
+  .dot-titan { background: var(--titan); }
+  .model-stats {
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid var(--border);
+    display: flex; gap: 16px;
+  }
+  .ms-item { text-align: center; flex: 1; }
+  .ms-val { font-family: var(--mono); font-size: 13px; font-weight: 600; }
+  .ms-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+  /* ── DIAGRAM 7: DATA FLOW ── */
+  .dataflow { display: flex; flex-direction: column; gap: 0; }
+  .df-row {
+    display: flex; align-items: stretch; gap: 0;
+    border: 1px solid var(--border); border-bottom: none;
+  }
+  .df-row:first-child { border-radius: 4px 4px 0 0; }
+  .df-row:last-child { border-bottom: 1px solid var(--border); border-radius: 0 0 4px 4px; }
+  .df-phase {
+    width: 140px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+    font-size: 11px; font-weight: 600;
+    writing-mode: horizontal-tb;
+  }
+  .df-steps {
+    flex: 1; padding: 12px 16px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  }
+  .df-step {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .df-box {
+    padding: 5px 10px; border-radius: 3px; border: 1px solid;
+    font-size: 11px; font-weight: 500; white-space: nowrap;
+  }
+  .dfb-blue { color: #70B0F0; border-color: rgba(0,87,164,0.5); background: rgba(0,57,122,0.3); }
+  .dfb-purple { color: var(--haiku); border-color: rgba(176,111,232,0.4); background: rgba(176,111,232,0.07); }
+  .dfb-teal { color: var(--titan); border-color: rgba(0,201,167,0.4); background: rgba(0,201,167,0.07); }
+  .dfb-yellow { color: var(--accent); border-color: rgba(240,165,0,0.4); background: rgba(240,165,0,0.07); }
+  .dfb-green { color: var(--accent2); border-color: rgba(0,168,120,0.4); background: rgba(0,168,120,0.07); }
+  .dfb-gray { color: var(--text2); border-color: var(--border); background: var(--surface); }
+  .df-arrow-right { color: var(--text3); font-size: 14px; }
+  .phase-ingest { background: rgba(0,57,122,0.2); color: #70B0F0; }
+  .phase-extract { background: rgba(0,87,164,0.15); color: #60A0E0; }
+  .phase-embed { background: rgba(0,168,120,0.1); color: var(--titan); }
+  .phase-index { background: rgba(0,57,122,0.25); color: #80B8F0; }
+  .phase-query { background: rgba(176,111,232,0.12); color: var(--haiku); }
+  .phase-search { background: rgba(0,87,164,0.18); color: #70A8E8; }
+  .phase-gen { background: rgba(240,165,0,0.12); color: var(--accent); }
+
+  /* ── MISC ── */
+  .box { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 24px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text3); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .note {
+    background: rgba(240,165,0,0.06);
+    border: 1px solid rgba(240,165,0,0.2);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    font-size: 11px; color: var(--text3);
+    border-radius: 0 4px 4px 0;
+    margin-top: 16px;
+  }
+  .note strong { color: var(--accent); }
+
+  /* ── NAV ── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,26,0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    padding: 0 32px;
+    display: flex; gap: 0; overflow-x: auto;
+  }
+  .nav-item {
+    padding: 12px 16px;
+    font-family: var(--mono); font-size: 11px; color: var(--text3);
+    cursor: pointer; border-bottom: 2px solid transparent;
+    white-space: nowrap; text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-item:hover { color: var(--text); border-color: var(--border); }
+  .nav-num { color: var(--accent); }
+
+  @media (max-width: 900px) {
+    .sf-diagram { flex-direction: column; }
+    .sf-legend { width: 100%; }
+    .model-grid { grid-template-columns: 1fr; }
+    .token-diagram { grid-template-columns: 1fr; }
+    .index-diagram { flex-direction: column; }
+    .index-right { width: 100%; }
+    .two-col { grid-template-columns: 1fr; }
+    .rag-name { min-width: 140px; }
+    .cover h1 { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-item" href="#arch"><span class="nav-num">01</span> Architecture</a>
+  <a class="nav-item" href="#stepfn"><span class="nav-num">02</span> Step Function</a>
+  <a class="nav-item" href="#rag"><span class="nav-num">03</span> RAG Pipeline</a>
+  <a class="nav-item" href="#indexing"><span class="nav-num">04</span> Indexing</a>
+  <a class="nav-item" href="#tokens"><span class="nav-num">05</span> Token Flow</a>
+  <a class="nav-item" href="#models"><span class="nav-num">06</span> Models</a>
+  <a class="nav-item" href="#dataflow"><span class="nav-num">07</span> Data Flow</a>
+</nav>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-grid"></div>
+  <div class="cover-inner">
+    <div class="cover-tag">BMO Internal — Architecture Diagrams</div>
+    <h1>MECH <span>AVATAR</span></h1>
+    <p class="cover-sub">System Architecture · Data Flow · Model Usage · Token Management</p>
+    <div class="cover-pills">
+      <span class="cover-pill pill-blue">AWS Lambda × 10</span>
+      <span class="cover-pill pill-blue">Step Functions</span>
+      <span class="cover-pill pill-blue">OpenSearch Serverless</span>
+      <span class="cover-pill pill-teal" style="color:var(--titan);border-color:rgba(0,201,167,0.4);background:rgba(0,201,167,0.08)">Titan Embeddings V2</span>
+      <span class="cover-pill pill-purple">Claude Haiku 3</span>
+      <span class="cover-pill pill-yellow">Claude Sonnet 3.5</span>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DIAGRAM 1 — HIGH-LEVEL ARCHITECTURE                       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="arch" class="section-header">
+  <span class="section-num">DIAGRAM 01</span>
+  <h2>High-Level System Architecture</h2>
+  <p>Two independent pipelines · Shared vector index</p>
+</div>
+
+<div class="arch-diagram">
+  <div class="arch-inner" style="width:100%">
+
+    <!-- ACTORS -->
+    <div class="actor-row">
+      <div class="actor">
+        <div class="actor-icon">📁</div>
+        <div class="actor-label">MECH Documents</div>
+        <div class="actor-sub">3.5 GB · 25K+ files</div>
+      </div>
+      <div class="actor">
+        <div class="actor-icon">☁️</div>
+        <div class="actor-label">S3 Bucket</div>
+        <div class="actor-sub">mechavatar-pdda1-ue1-dev-s3-inbound</div>
+      </div>
+      <div class="actor">
+        <div class="actor-icon">🔍</div>
+        <div class="actor-label">OpenSearch</div>
+        <div class="actor-sub">HNSW · 1024-dim · Hybrid KNN+BM25</div>
+      </div>
+      <div class="actor">
+        <div class="actor-icon">🤖</div>
+        <div class="actor-label">Amazon Bedrock</div>
+        <div class="actor-sub">Haiku · Sonnet · Titan V2</div>
+      </div>
+      <div class="actor">
+        <div class="actor-icon">🏦</div>
+        <div class="actor-label">MECH Team</div>
+        <div class="actor-sub">Questions via Excel/CSV</div>
+      </div>
+    </div>
+
+    <!-- PIPELINE A -->
+    <div class="pipeline-label">
+      ⬇ Pipeline A — Document Ingestion
+    </div>
+    <div class="pipeline-row">
+      <div class="p-node blue">
+        <div class="p-node-num">L01</div>
+        <div class="p-node-title">File Router</div>
+        <div class="p-node-sub">Validate · Dedup · Route</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="p-node purple" style="min-width:90px">
+        <div class="p-node-num">L10</div>
+        <div class="p-node-title">.doc Only</div>
+        <div class="p-node-sub">antiword</div>
+      </div>
+      <div class="arrow">↘</div>
+      <div class="p-node blue">
+        <div class="p-node-num">L02</div>
+        <div class="p-node-title">Extractor</div>
+        <div class="p-node-sub">Text · Chunk · Enrich</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="p-node teal">
+        <div class="p-node-num">L03</div>
+        <div class="p-node-title">Embeddings</div>
+        <div class="p-node-sub">Titan V2 · 1024-dim</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="p-node green">
+        <div class="p-node-num">L04</div>
+        <div class="p-node-title">Index Writer</div>
+        <div class="p-node-sub">OpenSearch · Bulk 100</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="p-node blue">
+        <div class="p-node-num">L05</div>
+        <div class="p-node-title">Metadata</div>
+        <div class="p-node-sub">Finalize · DynamoDB</div>
+      </div>
+    </div>
+
+    <!-- PIPELINE B -->
+    <div class="pipeline-label" style="margin-top:8px">
+      ⬇ Pipeline B — Question Answering
+    </div>
+    <div class="pipeline-row">
+      <div class="p-node blue">
+        <div class="p-node-num">L01</div>
+        <div class="p-node-title">File Router</div>
+        <div class="p-node-sub">questions/ trigger</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="p-node yellow">
+        <div class="p-node-num">L08</div>
+        <div class="p-node-title">Batch Q&amp;A</div>
+        <div class="p-node-sub">Parse · Parallel × 4</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="p-node yellow">
+        <div class="p-node-num">L06</div>
+        <div class="p-node-title">Query Processor</div>
+        <div class="p-node-sub">15-Stage RAG Pipeline</div>
+      </div>
+      <div class="arrow">↔</div>
+      <div class="p-node purple">
+        <div class="p-node-num">L07</div>
+        <div class="p-node-title">Memory Search</div>
+        <div class="p-node-sub">Session context</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="p-node purple">
+        <div class="p-node-num">L09</div>
+        <div class="p-node-title">Memory Writer</div>
+        <div class="p-node-sub">Async · DynamoDB</div>
+      </div>
+    </div>
+
+    <!-- SHARED -->
+    <div class="pipeline-label" style="margin-top:8px">
+      ↔ Shared Services
+    </div>
+    <div class="shared-row">
+      <div class="shared-node">
+        <div class="shared-node-title">🗄️ DynamoDB Tables</div>
+        <div class="shared-node-items">documents-metadata · processing-pipeline · deduplication-index · user-queries · system-config (cache)</div>
+      </div>
+      <div class="shared-node">
+        <div class="shared-node-title">🔍 OpenSearch Serverless</div>
+        <div class="shared-node-items">mechavatar-pdda1-ue1-dev-documents (main) · memory index · pageindex</div>
+      </div>
+      <div class="shared-node">
+        <div class="shared-node-title">🤖 Amazon Bedrock</div>
+        <div class="shared-node-items">Application Inference Profiles · Claude Sonnet 3.5 · Claude Haiku 3 · Titan Embeddings V2</div>
+      </div>
+      <div class="shared-node">
+        <div class="shared-node-title">⚡ Step Functions</div>
+        <div class="shared-node-items">Standard Workflow · 8 states · 3× retries · L02→L03→L04→L05 orchestration</div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4080C0"></div> Ingestion Lambda</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--haiku)"></div> .doc Processor</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--titan)"></div> Embedding</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Index Writer</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Q&A Lambda</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DIAGRAM 2 — STEP FUNCTION                                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="stepfn" class="section-header">
+  <span class="section-num">DIAGRAM 02</span>
+  <h2>Step Function State Machine</h2>
+  <p>Per-document orchestration · 8 states · Error recovery</p>
+</div>
+
+<div class="box">
+  <div class="sf-diagram">
+    <div class="sf-flow">
+      <!-- START -->
+      <div class="sf-state dynamo">
+        <div class="sf-icon">🔵</div>
+        <div class="sf-body">
+          <div class="sf-title">START — S3 Upload Detected</div>
+          <div class="sf-desc">Lambda 01 starts execution with document_id · s3_bucket · s3_key · file_name · file_type</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state choice">
+        <div class="sf-icon">◇</div>
+        <div class="sf-body">
+          <div class="sf-title">ValidateInput</div>
+          <div class="sf-desc">Check: document_id · s3_bucket · s3_key · file_name all present</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state dynamo">
+        <div class="sf-icon">🗄️</div>
+        <div class="sf-body">
+          <div class="sf-title">InitializeMetadata</div>
+          <div class="sf-desc">DynamoDB PutItem → status: ingestion_started</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <!-- BRANCH FOR .DOC -->
+      <div style="width:100%;max-width:340px">
+        <div class="sf-state choice" style="margin-bottom:8px">
+          <div class="sf-icon">◇</div>
+          <div class="sf-body">
+            <div class="sf-title">CheckLegacyDocFormat</div>
+            <div class="sf-desc">file_type == 'doc_legacy' ?</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1;text-align:center">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--haiku);margin-bottom:4px">YES (.doc)</div>
+            <div class="sf-state lambda" style="min-width:0">
+              <div class="sf-icon">λ</div>
+              <div class="sf-body"><div class="sf-title" style="font-size:11px">L10 ProcessLegacyDoc</div><div class="sf-desc">antiword extraction</div></div>
+            </div>
+          </div>
+          <div style="flex:1;text-align:center">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--accent2);margin-bottom:4px">NO (all others)</div>
+            <div class="sf-state lambda" style="min-width:0">
+              <div class="sf-icon">λ</div>
+              <div class="sf-body"><div class="sf-title" style="font-size:11px">L02 ExtractDocument</div><div class="sf-desc">PDF/XLSX/DOCX/TXT…</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state dynamo">
+        <div class="sf-icon">🗄️</div>
+        <div class="sf-body">
+          <div class="sf-title">UpdateStatusToExtracted</div>
+          <div class="sf-desc">DynamoDB → extraction_complete · chunk_count stored</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state lambda">
+        <div class="sf-icon">λ</div>
+        <div class="sf-body">
+          <div class="sf-title">GenerateEmbeddings — Lambda 03</div>
+          <div class="sf-desc">Titan V2 · batch 25 · receives <strong style="color:var(--accent)">s3_key</strong> from extraction_result ← critical for source_priority</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state dynamo">
+        <div class="sf-icon">🗄️</div>
+        <div class="sf-body">
+          <div class="sf-title">UpdateStatusToEmbedded</div>
+          <div class="sf-desc">DynamoDB → embedding_complete · token_count stored</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state lambda">
+        <div class="sf-icon">λ</div>
+        <div class="sf-body">
+          <div class="sf-title">IndexToOpenSearch — Lambda 04</div>
+          <div class="sf-desc">Bulk 100/batch · receives <strong style="color:var(--accent)">s3_key</strong> → computes source_priority + s3_folder</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state lambda">
+        <div class="sf-icon">λ</div>
+        <div class="sf-body">
+          <div class="sf-title">UpdateMetadata — Lambda 05</div>
+          <div class="sf-desc">Finalizes record · extracts MECH identifiers · receives metrics from all stages</div>
+        </div>
+      </div>
+      <div class="sf-connector"></div>
+
+      <div class="sf-state success">
+        <div class="sf-icon">✅</div>
+        <div class="sf-body">
+          <div class="sf-title">PipelineSuccess → DocumentProcessingComplete</div>
+          <div class="sf-desc">DynamoDB → status: indexed · is_searchable: true · Document now queryable</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="sf-state fail">
+          <div class="sf-icon">❌</div>
+          <div class="sf-body">
+            <div class="sf-title">HandleError → MarkPipelineFailed</div>
+            <div class="sf-desc">DynamoDB → status: failed · error_details stored · Lambda 05 reprocess_failed can retry</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="sf-legend">
+      <div class="sf-legend-title">State Types</div>
+      <div class="sf-legend-item">
+        <div class="sf-legend-box" style="background:rgba(0,87,164,0.25);border-color:rgba(0,87,164,0.6)"></div>
+        DynamoDB Task
+      </div>
+      <div class="sf-legend-item">
+        <div class="sf-legend-box" style="background:rgba(176,111,232,0.06);border-color:rgba(176,111,232,0.5)"></div>
+        Lambda Task
+      </div>
+      <div class="sf-legend-item">
+        <div class="sf-legend-box" style="background:rgba(240,165,0,0.06);border-color:rgba(240,165,0,0.4);border-style:dashed"></div>
+        Choice State
+      </div>
+      <div class="sf-legend-item">
+        <div class="sf-legend-box" style="background:rgba(0,168,120,0.08);border-color:rgba(0,168,120,0.6)"></div>
+        Success State
+      </div>
+      <div class="sf-legend-item">
+        <div class="sf-legend-box" style="background:rgba(224,82,82,0.06);border-color:rgba(224,82,82,0.5)"></div>
+        Fail State
+      </div>
+
+      <div class="sf-legend-title" style="margin-top:24px">Retry Policy</div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.8">
+        All Lambda states:<br>
+        · 3 retries<br>
+        · 2s base, 2× backoff<br>
+        · ServiceException<br>
+        · TooManyRequests<br>
+        · Timeout<br><br>
+        DynamoDB states:<br>
+        · 3 retries<br>
+        · 1s base, 2× backoff<br>
+        · Throughput errors
+      </div>
+
+      <div class="sf-legend-title" style="margin-top:24px">Key Data Flows</div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.8">
+        extraction_result carries:<br>
+        <span style="color:var(--accent)">s3_key</span> → L03 → L04<br>
+        chunk_count → L03<br>
+        file_name → L04, L05<br>
+        metrics.processing_ms<br>
+        → L05<br><br>
+        embeddings_result:<br>
+        embeddings_s3_key<br>
+        embedding_count<br>
+        metrics.embedding_ms
+      </div>
+    </div>
+  </div>
+  <div class="note"><strong>Critical Fix:</strong> s3_key must be forwarded from extraction_result through GenerateEmbeddings and IndexToOpenSearch parameters. Without this, Lambda 04 cannot determine the document's source folder and every document receives source_priority=100 (no boost).</div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DIAGRAM 3 — 15-STAGE RAG PIPELINE                        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="rag" class="section-header">
+  <span class="section-num">DIAGRAM 03</span>
+  <h2>Lambda 06 — 15-Stage RAG Pipeline</h2>
+  <p>Per question · ~2–8 seconds end-to-end</p>
+</div>
+
+<div class="rag-pipeline">
+
+  <!-- Stage 1 -->
+  <div class="rag-stage">
+    <div class="rag-num">01</div>
+    <div class="rag-content">
+      <div class="rag-name">Cache Check</div>
+      <div class="rag-desc">SHA256(query + filters + top_k + CODE_VERSION) lookup in DynamoDB. TTL=24h. Min confidence=0.6 to cache. ~40% hit rate for repeat queries. Returns in &lt;100ms on hit.</div>
+      <span class="rag-model model-dynamo">DynamoDB</span>
+    </div>
+  </div>
+
+  <!-- Stage 2 PARALLEL -->
+  <div class="rag-stage parallel-group">
+    <div class="parallel-header">⚡ STAGES 2a · 2b · 2c — Executed in parallel via ThreadPoolExecutor (max 3 workers, 5s timeout each)</div>
+    <div class="parallel-stages">
+      <div class="parallel-sub">
+        <div class="parallel-sub-label">Stage 2a</div>
+        <div class="parallel-sub-name">Intent Classification</div>
+        <div style="font-size:10px;color:var(--text3);margin:4px 0">Classifies into: definition · procedure · troubleshooting · comparison · configuration · security · open_ended. Adjusts top_k + content_type_boost per intent.</div>
+        <span class="rag-model model-haiku parallel-sub-model">Haiku</span>
+      </div>
+      <div class="parallel-sub">
+        <div class="parallel-sub-label">Stage 2b</div>
+        <div class="parallel-sub-name">Query Embedding</div>
+        <div style="font-size:10px;color:var(--text3);margin:4px 0">Generates 1024-dimensional dense vector for the query using Titan Embeddings V2. Same model used for documents — ensures same embedding space for KNN.</div>
+        <span class="rag-model model-titan parallel-sub-model">Titan V2</span>
+      </div>
+      <div class="parallel-sub">
+        <div class="parallel-sub-label">Stage 2c</div>
+        <div class="parallel-sub-name">Requirements Extraction</div>
+        <div style="font-size:10px;color:var(--text3);margin:4px 0">Extracts: required_topics · key_terms · expected_doc_types · importance_indicators · multi_doc_required flag. Used to inject hints into context.</div>
+        <span class="rag-model model-haiku parallel-sub-model">Haiku</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stage 3 -->
+  <div class="rag-stage">
+    <div class="rag-num">03</div>
+    <div class="rag-content">
+      <div class="rag-name">Entity Extraction</div>
+      <div class="rag-desc">Regex-based extraction of mainframe entities from query: TSS IDs (ABC1234), table names (MY*, BDD*, MDD*), error codes, ABEND codes, program names, JCL job names, VSAM datasets.</div>
+      <span class="rag-model model-internal">Regex · ~5ms</span>
+    </div>
+  </div>
+
+  <!-- Stage 4 -->
+  <div class="rag-stage">
+    <div class="rag-num">04</div>
+    <div class="rag-content">
+      <div class="rag-name">Query Expansion / HyDE</div>
+      <div class="rag-desc">For complex queries: HyDE generates a hypothetical MECH document excerpt to embed instead of bare query. Multi-part questions decomposed into 2–4 sub-queries for independent retrieval and RRF fusion.</div>
+      <span class="rag-model model-haiku">Haiku</span>
+    </div>
+  </div>
+
+  <!-- Stage 5 -->
+  <div class="rag-stage">
+    <div class="rag-num">05</div>
+    <div class="rag-content">
+      <div class="rag-name">Hybrid Search (KNN + BM25)</div>
+      <div class="rag-desc">function_score query: KNN semantic (0.7) + BM25 keyword (0.3) + entity terms boost (2×) + content_type_boost (1.5×) + source_priority boost (1.0–2.0×). Multi-query results fused with RRF k=60.</div>
+      <span class="rag-model model-internal">OpenSearch</span>
+    </div>
+  </div>
+
+  <!-- Stage 6 -->
+  <div class="rag-stage">
+    <div class="rag-num">06</div>
+    <div class="rag-content">
+      <div class="rag-name">Document Diversity</div>
+      <div class="rag-desc">Best chunk per unique document collected first. Remaining TOP_K slots filled by score from remaining pool. Ensures cross-document synthesis — prevents all chunks from single high-scoring file dominating context.</div>
+      <span class="rag-model model-internal">In-memory · ~2ms</span>
+    </div>
+  </div>
+
+  <!-- Stage 7a -->
+  <div class="rag-stage">
+    <div class="rag-num">7a</div>
+    <div class="rag-content">
+      <div class="rag-name">Entity-Aware Reranking</div>
+      <div class="rag-desc">Boosts chunks containing extracted query entities. For each match: score × (1 + 0.1 × entity_count × 1.5). Fast deterministic boost before expensive cross-encoder.</div>
+      <span class="rag-model model-internal">In-memory · ~5ms</span>
+    </div>
+  </div>
+
+  <!-- Stage 7b -->
+  <div class="rag-stage">
+    <div class="rag-num">7b</div>
+    <div class="rag-content">
+      <div class="rag-name">Cross-Encoder Reranking</div>
+      <div class="rag-desc">Haiku scores each chunk 0.0–1.0 for direct query relevance. Final score = 0.4 × retrieval_score + 0.6 × cross_encoder_score. Top 12 chunks scored per call. Remainder get neutral 0.5.</div>
+      <span class="rag-model model-haiku">Haiku · ~800ms</span>
+    </div>
+  </div>
+
+  <!-- Stage 8 -->
+  <div class="rag-stage">
+    <div class="rag-num">08</div>
+    <div class="rag-content">
+      <div class="rag-name">Context Compression</div>
+      <div class="rag-desc">Haiku removes sentences from chunks that are irrelevant to the query. Max compressed tokens = 4,000. Reduces context noise before passing to Sonnet, improving answer focus.</div>
+      <span class="rag-model model-haiku">Haiku</span>
+    </div>
+  </div>
+
+  <!-- Stage 9 -->
+  <div class="rag-stage">
+    <div class="rag-num">09</div>
+    <div class="rag-content">
+      <div class="rag-name">Context Reordering</div>
+      <div class="rag-desc">Lost-in-middle mitigation: most relevant chunks placed at start and end of context window. Lower relevance chunks placed in middle. LLMs attend more strongly to beginning and end.</div>
+      <span class="rag-model model-internal">In-memory · ~1ms</span>
+    </div>
+  </div>
+
+  <!-- Stage 10 -->
+  <div class="rag-stage">
+    <div class="rag-num">10</div>
+    <div class="rag-content">
+      <div class="rag-name">Context Building</div>
+      <div class="rag-desc">Assembles structured context with document labels, page numbers, section titles. Injects importance indicators from Stage 2c as [CRITICAL IDENTIFIERS TO VERIFY] header above context.</div>
+      <span class="rag-model model-internal">String builder</span>
+    </div>
+  </div>
+
+  <!-- Stage 11 -->
+  <div class="rag-stage">
+    <div class="rag-num">11</div>
+    <div class="rag-content">
+      <div class="rag-name">Answer Generation</div>
+      <div class="rag-desc">Claude Sonnet 3.5 with intent-aware system prompt. Strict grounding rules: USE ONLY provided documents, NEVER fabricate, QUOTE relevant text, CITE all sources. Max output 5,000 tokens.</div>
+      <span class="rag-model model-sonnet">Sonnet 3.5 · ~3–6s</span>
+    </div>
+  </div>
+
+  <!-- Stage 12 -->
+  <div class="rag-stage">
+    <div class="rag-num">12</div>
+    <div class="rag-content">
+      <div class="rag-name">Grounding Verification</div>
+      <div class="rag-desc">Checks answer claims against retrieved context. Statuses: fully_grounded · partially_grounded · weakly_grounded · ungrounded. Weakly/ungrounded answers get warning appended to response.</div>
+      <span class="rag-model model-internal">Regex + string match</span>
+    </div>
+  </div>
+
+  <!-- Stage 13 -->
+  <div class="rag-stage">
+    <div class="rag-num">13</div>
+    <div class="rag-content">
+      <div class="rag-name">Confidence Calibration</div>
+      <div class="rag-desc">Multi-factor: avg retrieval score (60%) + grounding score (40%). Optionally overridden by calibration heuristics. Low confidence triggers answer reformatting with explicit uncertainty markers.</div>
+      <span class="rag-model model-internal">Heuristic</span>
+    </div>
+  </div>
+
+  <!-- Stage 14 -->
+  <div class="rag-stage">
+    <div class="rag-num">14</div>
+    <div class="rag-content">
+      <div class="rag-name">Final Confidence Score</div>
+      <div class="rag-desc">Blends: avg_retrieval_score × 0.6 + source_coverage × 0.2 + intent_confidence × 0.2. Then: search_conf × 0.6 + groundedness × 0.4 = final confidence (0.0–1.0).</div>
+      <span class="rag-model model-internal">Formula</span>
+    </div>
+  </div>
+
+  <!-- Stage 15 -->
+  <div class="rag-stage">
+    <div class="rag-num">15</div>
+    <div class="rag-content">
+      <div class="rag-name">Cache Write + Async Memory</div>
+      <div class="rag-desc">If confidence ≥ 0.6: cache answer in DynamoDB (24h TTL). Async invoke Lambda 09 to store Q&A pair in session memory for follow-up questions.</div>
+      <span class="rag-model model-dynamo">DynamoDB · Lambda 09</span>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DIAGRAM 4 — INDEXING                                      -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="indexing" class="section-header">
+  <span class="section-num">DIAGRAM 04</span>
+  <h2>Indexing Architecture</h2>
+  <p>Source priority · OpenSearch schema · Chunk anatomy</p>
+</div>
+
+<div class="index-diagram">
+  <div class="index-left">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">Source Priority Tiers — S3 Folder → OpenSearch Search Boost</div>
+    <table class="priority-table">
+      <thead>
+        <tr>
+          <th style="width:40px">P#</th>
+          <th>S3 Folder</th>
+          <th style="width:160px">Search Boost</th>
+          <th>Example Files</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="priority-badge p1">1</span></td>
+          <td>wiki dump/</td>
+          <td><div class="boost-bar boost-2x">2.0×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">BMO_MECH_Wiki.xlsx</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p2">2</span></td>
+          <td>training/</td>
+          <td><div class="boost-bar boost-2x">2.0×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">CADS_Training.pdf</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p3">3</span></td>
+          <td>mech documentation/</td>
+          <td><div class="boost-bar boost-15x">1.5×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">A-24-PROJA.txt, A-02-*.pdf</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p4">4</span></td>
+          <td>mech code/</td>
+          <td><div class="boost-bar boost-15x">1.5×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">BDDTA29, MOPIC5A, *.jcl</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p5">5</span></td>
+          <td>mech historical/</td>
+          <td><div class="boost-bar boost-15x">1.5×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">Legacy release docs</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p6">6</span></td>
+          <td>mech files/</td>
+          <td><div class="boost-bar boost-12x">1.2×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">System configs</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p7">7</span></td>
+          <td>mech tables/</td>
+          <td><div class="boost-bar boost-12x">1.2×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">BDDTA*, MYPRDA exports</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p8">8</span></td>
+          <td>tools & systems/</td>
+          <td><div class="boost-bar boost-12x">1.2×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">Interac Portal guide</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p9">9</span></td>
+          <td>mech software/</td>
+          <td><div class="boost-bar boost-12x">1.2×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">Software specs</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p100">?</span></td>
+          <td>any other location</td>
+          <td><div class="boost-bar boost-1x">1.0×</div></td>
+          <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">Unclassified docs</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:16px"><strong>How priority flows:</strong> S3 key path → Lambda 04 get_source_priority() → stored as integer in OpenSearch → function_score boost at query time. s3_folder also stored for human-readable filtering (e.g. exclude "tools & systems" folder).</div>
+  </div>
+
+  <div class="index-right">
+    <div class="chunk-anatomy">
+      <div class="chunk-header">OpenSearch Document — Key Fields</div>
+      <div class="chunk-field"><span class="cf-name">text</span><span class="cf-type">text</span><span class="cf-desc">Chunk content — BM25 searchable</span></div>
+      <div class="chunk-field"><span class="cf-name">embedding</span><span class="cf-type">knn_vector</span><span class="cf-desc">1024-dim HNSW cosine</span></div>
+      <div class="chunk-field"><span class="cf-name">source_priority</span><span class="cf-type">integer</span><span class="cf-desc">1–9 or 100 → search boost</span></div>
+      <div class="chunk-field"><span class="cf-name">s3_key</span><span class="cf-type">keyword</span><span class="cf-desc">Full S3 path</span></div>
+      <div class="chunk-field"><span class="cf-name">s3_folder</span><span class="cf-type">keyword</span><span class="cf-desc">Top-level folder name</span></div>
+      <div class="chunk-field"><span class="cf-name">file_name</span><span class="cf-type">keyword</span><span class="cf-desc">Original filename</span></div>
+      <div class="chunk-field"><span class="cf-name">content_type</span><span class="cf-type">keyword</span><span class="cf-desc">procedure/definition/code…</span></div>
+      <div class="chunk-field"><span class="cf-name">entities</span><span class="cf-type">keyword[]</span><span class="cf-desc">MECH identifiers extracted</span></div>
+      <div class="chunk-field"><span class="cf-name">section_title</span><span class="cf-type">keyword</span><span class="cf-desc">Inferred section heading</span></div>
+      <div class="chunk-field"><span class="cf-name">page_number</span><span class="cf-type">integer</span><span class="cf-desc">Source page (PDF/DOCX)</span></div>
+      <div class="chunk-field"><span class="cf-name">mech_domain</span><span class="cf-type">keyword</span><span class="cf-desc">SHF/accounting/RR16…</span></div>
+      <div class="chunk-field"><span class="cf-name">contains_jcl</span><span class="cf-type">boolean</span><span class="cf-desc">Content flags (×6)</span></div>
+      <div class="chunk-field"><span class="cf-name">document_id</span><span class="cf-type">keyword</span><span class="cf-desc">Links all chunks per doc</span></div>
+      <div class="chunk-field"><span class="cf-name">chunk_id</span><span class="cf-type">keyword</span><span class="cf-desc">Unique chunk identifier</span></div>
+    </div>
+
+    <div style="margin-top:16px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px 16px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">HNSW Index Settings</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--text2)">
+        <div style="display:flex;justify-content:space-between"><span>Dimensions</span><span style="font-family:var(--mono);color:var(--titan)">1024</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Space type</span><span style="font-family:var(--mono);color:var(--titan)">cosinesimil</span></div>
+        <div style="display:flex;justify-content:space-between"><span>ef_construction</span><span style="font-family:var(--mono);color:var(--titan)">128</span></div>
+        <div style="display:flex;justify-content:space-between"><span>m (connectivity)</span><span style="font-family:var(--mono);color:var(--titan)">24</span></div>
+        <div style="display:flex;justify-content:space-between"><span>ef_search</span><span style="font-family:var(--mono);color:var(--titan)">100</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Text analyzer</span><span style="font-family:var(--mono);color:var(--titan)">mech_analyzer</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DIAGRAM 5 — TOKEN FLOW                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="tokens" class="section-header">
+  <span class="section-num">DIAGRAM 05</span>
+  <h2>Token Budget & Management</h2>
+  <p>Per question · Per document · Limits & protections</p>
+</div>
+
+<div class="token-diagram">
+
+  <!-- PER QUESTION -->
+  <div class="token-card">
+    <div class="token-card-header tc-blue">
+      <span>💬</span> Per Question — Token Budget (Lambda 06)
+    </div>
+    <div style="display:flex;padding:6px 16px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2)">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);flex:1">Stage</div>
+      <div style="font-family:var(--mono);font-size:10px;color:#60A0E0;min-width:80px;text-align:right">Input</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--accent2);min-width:80px;text-align:right">Output</div>
+    </div>
+    <div class="token-row"><div class="tr-stage">Stage 2a — Intent (Haiku)</div><div class="tr-in">~200</div><div class="tr-out">~50</div></div>
+    <div class="token-row"><div class="tr-stage">Stage 2c — Requirements (Haiku)</div><div class="tr-in">~300</div><div class="tr-out">~150</div></div>
+    <div class="token-row"><div class="tr-stage">Stage 4 — HyDE / Expansion (Haiku)</div><div class="tr-in">~400</div><div class="tr-out">~200</div></div>
+    <div class="token-row"><div class="tr-stage">Stage 7b — Cross-Encoder ×12 (Haiku)</div><div class="tr-in">~2,000</div><div class="tr-out">~100</div></div>
+    <div class="token-row"><div class="tr-stage">Stage 8 — Compression (Haiku)</div><div class="tr-in">~1,000</div><div class="tr-out">~600</div></div>
+    <div class="token-row"><div class="tr-stage">Stage 11 — Answer (Sonnet 3.5)</div><div class="tr-in">~20,000</div><div class="tr-out">~2,000–5,000</div></div>
+    <div class="token-total">
+      <span class="token-total-label">TOTAL / QUESTION</span>
+      <span class="token-total-val">~28,000–32,000 tokens</span>
+    </div>
+  </div>
+
+  <!-- PER DOCUMENT -->
+  <div class="token-card">
+    <div class="token-card-header tc-teal">
+      <span>📄</span> Per Document — Token Budget (Ingestion)
+    </div>
+    <div style="display:flex;padding:6px 16px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2)">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);flex:1">Stage</div>
+      <div style="font-family:var(--mono);font-size:10px;color:#60A0E0;min-width:80px;text-align:right">Input</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--accent2);min-width:80px;text-align:right">Output</div>
+    </div>
+    <div class="token-row"><div class="tr-stage">Chunk metadata × 150 (Haiku)</div><div class="tr-in">~90,000</div><div class="tr-out">~22,500</div></div>
+    <div class="token-row"><div class="tr-stage">Image OCR (Haiku Vision, if any)</div><div class="tr-in">varies</div><div class="tr-out">~500–1,500</div></div>
+    <div class="token-row"><div class="tr-stage">Embeddings × 150 chunks (Titan V2)</div><div class="tr-in">~225,000</div><div class="tr-out">—</div></div>
+    <div class="token-total">
+      <span class="token-total-label">TOTAL / AVG DOCUMENT (150 chunks)</span>
+      <span class="token-total-val">~340,000 tokens</span>
+    </div>
+  </div>
+
+  <!-- TOKEN LIMITS HAIKU -->
+  <div class="token-card">
+    <div class="token-card-header tc-purple">
+      <span>🔒</span> Token Limits — Haiku
+    </div>
+    <div class="token-row"><div class="tr-stage">Cross-encoder chunk cap</div><div class="tr-in" style="color:var(--text2)">500 chars/chunk</div></div>
+    <div class="token-row"><div class="tr-stage">Cross-encoder max output</div><div class="tr-in" style="color:var(--text2)">300 tokens</div></div>
+    <div class="token-row"><div class="tr-stage">Query expansion output</div><div class="tr-in" style="color:var(--text2)">200 tokens</div></div>
+    <div class="token-row"><div class="tr-stage">Metadata extraction output</div><div class="tr-in" style="color:var(--text2)">150 tokens</div></div>
+    <div class="token-row"><div class="tr-stage">Context compression ceiling</div><div class="tr-in" style="color:var(--text2)">4,000 tokens</div></div>
+    <div class="token-row"><div class="tr-stage">Throttle handling</div><div class="tr-in" style="color:var(--accent2)">Exp. backoff</div></div>
+  </div>
+
+  <!-- TOKEN LIMITS SONNET + TITAN -->
+  <div class="token-card">
+    <div class="token-card-header tc-yellow">
+      <span>🔒</span> Token Limits — Sonnet + Titan
+    </div>
+    <div class="token-row"><div class="tr-stage">Sonnet max output</div><div class="tr-in" style="color:var(--text2)">5,000 tokens</div></div>
+    <div class="token-row"><div class="tr-stage">Sonnet temperature</div><div class="tr-in" style="color:var(--text2)">0.2</div></div>
+    <div class="token-row"><div class="tr-stage">Titan max input per chunk</div><div class="tr-in" style="color:var(--text2)">30,000 chars</div></div>
+    <div class="token-row"><div class="tr-stage">Titan token overflow retry</div><div class="tr-in" style="color:var(--text2)">−30% text</div></div>
+    <div class="token-row"><div class="tr-stage">Circuit breaker threshold</div><div class="tr-in" style="color:var(--text2)">5 failures</div></div>
+    <div class="token-row"><div class="tr-stage">Circuit breaker recovery</div><div class="tr-in" style="color:var(--accent2)">30 seconds</div></div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DIAGRAM 6 — MODEL USAGE                                   -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="models" class="section-header">
+  <span class="section-num">DIAGRAM 06</span>
+  <h2>AI Model Allocation</h2>
+  <p>Which model · Which task · Why</p>
+</div>
+
+<div class="model-grid">
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <div class="model-logo logo-haiku">H3</div>
+      <div>
+        <div class="model-name">Claude Haiku 3</div>
+        <div class="model-version">Fast · Cost-efficient · Auxiliary tasks</div>
+      </div>
+    </div>
+    <div class="model-tasks">
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Stage 2a: Query intent classification → 7 intent types</div>
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Stage 2c: Requirements extraction → key terms, doc types</div>
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Stage 4: HyDE hypothetical doc + query decomposition</div>
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Stage 7b: Cross-encoder chunk relevance scoring 0.0–1.0</div>
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Stage 8: Context compression — remove irrelevant sentences</div>
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Lambda 02: Chunk metadata extraction per chunk (ingestion)</div>
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Lambda 02: Image / screenshot OCR (Claude Vision)</div>
+      <div class="model-task"><div class="mt-dot dot-haiku"></div>Lambda 10: Post-extraction .doc text cleanup</div>
+    </div>
+    <div class="model-stats">
+      <div class="ms-item"><div class="ms-val" style="color:var(--haiku)">8</div><div class="ms-label">Task types</div></div>
+      <div class="ms-item"><div class="ms-val" style="color:var(--haiku)">~5ms</div><div class="ms-label">Intent latency</div></div>
+      <div class="ms-item"><div class="ms-val" style="color:var(--haiku)">~800ms</div><div class="ms-label">Cross-encoder</div></div>
+    </div>
+  </div>
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <div class="model-logo logo-sonnet">S3.5</div>
+      <div>
+        <div class="model-name">Claude Sonnet 3.5</div>
+        <div class="model-version">High accuracy · Complex reasoning · Final answers</div>
+      </div>
+    </div>
+    <div class="model-tasks">
+      <div class="model-task"><div class="mt-dot dot-sonnet"></div>Stage 11 (Lambda 06): Primary answer generation with intent-aware system prompt and strict grounding rules</div>
+      <div class="model-task"><div class="mt-dot dot-sonnet"></div>Stage 11 (Lambda 08 fallback): Local path answer generation when Lambda 06 is unavailable</div>
+      <div class="model-task"><div class="mt-dot dot-sonnet"></div>Intent-specific prompts: definition (concise) · procedure (step-by-step) · comparison (table) · security (restricted) · open_ended (comprehensive)</div>
+      <div class="model-task"><div class="mt-dot dot-sonnet"></div>MECH domain hints injected: SHF Switch modes · BDD* field mappings · retention periods (6/35 days/7 years) · RR16 Start Number format</div>
+    </div>
+    <div class="model-stats">
+      <div class="ms-item"><div class="ms-val" style="color:var(--sonnet)">5,000</div><div class="ms-label">Max output tokens</div></div>
+      <div class="ms-item"><div class="ms-val" style="color:var(--sonnet)">0.2</div><div class="ms-label">Temperature</div></div>
+      <div class="ms-item"><div class="ms-val" style="color:var(--sonnet)">~3–6s</div><div class="ms-label">Avg latency</div></div>
+    </div>
+  </div>
+
+  <div class="model-card">
+    <div class="model-card-header">
+      <div class="model-logo logo-titan">T V2</div>
+      <div>
+        <div class="model-name">Titan Embeddings V2</div>
+        <div class="model-version">Dense vectors · Same space for docs + queries</div>
+      </div>
+    </div>
+    <div class="model-tasks">
+      <div class="model-task"><div class="mt-dot dot-titan"></div>Lambda 03 (ingestion): Generate 1024-dim embedding for every document chunk. Batch 25, 0.1s pause between batches.</div>
+      <div class="model-task"><div class="mt-dot dot-titan"></div>Stage 2b (Lambda 06 query time): Generate embedding for user query using the same model and same 1024-dim space as documents.</div>
+      <div class="model-task"><div class="mt-dot dot-titan"></div>Lambda 08 local path: Query embedding for fallback search path.</div>
+      <div class="model-task"><div class="mt-dot dot-titan"></div>Critical: identical model for both indexing and querying ensures vectors exist in the same semantic space for accurate KNN retrieval.</div>
+    </div>
+    <div class="model-stats">
+      <div class="ms-item"><div class="ms-val" style="color:var(--titan)">1024</div><div class="ms-label">Dimensions</div></div>
+      <div class="ms-item"><div class="ms-val" style="color:var(--titan)">30K</div><div class="ms-label">Max chars</div></div>
+      <div class="ms-item"><div class="ms-val" style="color:var(--titan)">cosine</div><div class="ms-label">Similarity</div></div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DIAGRAM 7 — END-TO-END DATA FLOW                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="dataflow" class="section-header">
+  <span class="section-num">DIAGRAM 07</span>
+  <h2>End-to-End Data Flow</h2>
+  <p>Document upload to indexed · Question to answer</p>
+</div>
+
+<div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px">— Pipeline A: Document Ingestion —</div>
+<div class="dataflow" style="margin-bottom:32px">
+
+  <div class="df-row">
+    <div class="df-phase phase-ingest">S3 Trigger</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-gray">File Uploaded</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">L01: S3 ObjectCreated event</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Validate file</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">MD5 → document_id</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Dedup check</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-green">Start Step Function</div></div>
+    </div>
+  </div>
+
+  <div class="df-row">
+    <div class="df-phase phase-extract">Extract</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-blue">L02: Download from S3</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Extract text (streaming)</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">HybridChunker</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-purple">Haiku: metadata/entities</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-gray">chunks.jsonl → S3</div></div>
+    </div>
+  </div>
+
+  <div class="df-row">
+    <div class="df-phase phase-embed">Embed</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-blue">L03: Load chunks (stream)</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-teal">Titan V2: 1024-dim × each chunk</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-teal">Batch 25 · rate-limited</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-gray">embeddings.jsonl → S3</div></div>
+    </div>
+  </div>
+
+  <div class="df-row">
+    <div class="df-phase phase-index">Index</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-blue">L04: Load embeddings (stream)</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">s3_key → source_priority + s3_folder</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Delete existing chunks</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-green">Bulk index OpenSearch (100/batch)</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-green">is_searchable: true</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px">— Pipeline B: Question Answering —</div>
+<div class="dataflow">
+
+  <div class="df-row">
+    <div class="df-phase phase-query">Intake</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-gray">questions.xlsx uploaded</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">L01: async invoke L08</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-yellow">L08: parse + hash file</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-yellow">ThreadPoolExecutor × 4</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-yellow">Route each question → L06</div></div>
+    </div>
+  </div>
+
+  <div class="df-row">
+    <div class="df-phase phase-query" style="background:rgba(240,165,0,0.08);color:var(--accent)">L06 Stages 1–5</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-blue">Cache lookup</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-purple">Haiku: intent ‖</div></div>
+      <div class="df-step"><div class="df-box dfb-teal">Titan: embed ‖</div></div>
+      <div class="df-step"><div class="df-box dfb-purple">Haiku: requirements</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Regex: entities</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-purple">Haiku: HyDE/expand</div></div>
+    </div>
+  </div>
+
+  <div class="df-row">
+    <div class="df-phase phase-search">Search & Rerank</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-green">OpenSearch: KNN + BM25 + priority boost</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Diversity filter</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Entity rerank</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-purple">Haiku: cross-encoder × 12</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-purple">Compress + reorder</div></div>
+    </div>
+  </div>
+
+  <div class="df-row">
+    <div class="df-phase phase-gen">Generate</div>
+    <div class="df-steps">
+      <div class="df-step"><div class="df-box dfb-yellow">Sonnet 3.5: generate answer (max 5K tokens)</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Grounding verify</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Confidence score</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-blue">Cache write</div><div class="df-arrow-right">→</div></div>
+      <div class="df-step"><div class="df-box dfb-green">answers.json → S3</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div style="height:60px"></div>
+</div><!-- /page -->
+
+</body>
+</html>
